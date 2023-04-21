@@ -1,31 +1,20 @@
+import java.util.Map;
 import java.util.TreeMap;
 
 class NrTelefoniczny implements Comparable<NrTelefoniczny> {
-    private String codeNumber;
-    private String phoneNumber;
-
-
+    private final String codeNumber;
+    private final String phoneNumber;
     public NrTelefoniczny(String inputedCodeNumber, String inputedPhoneNumber) {
         this.phoneNumber = inputedPhoneNumber;
         this.codeNumber = inputedCodeNumber;
     }
-
-    public String getCodeNumber() {
+    String getCodeNumber() {
         return codeNumber;
     }
 
-    public String getPhoneNumber() {
+    String getPhoneNumber() {
         return phoneNumber;
     }
-
-    public void setCodeNumber(String inputedCodeNumber) {
-        this.codeNumber = inputedCodeNumber;
-    }
-
-    public void setPhoneNumber(String inputedPhoneNumber) {
-        this.phoneNumber = inputedPhoneNumber;
-    }
-
     @Override
     public int compareTo(NrTelefoniczny o) {
         int isCodeTheSame = codeNumber.compareTo(o.codeNumber);
@@ -35,86 +24,166 @@ class NrTelefoniczny implements Comparable<NrTelefoniczny> {
         return isCodeTheSame;
     }
 }
-
 abstract class Wpis {
-    public abstract void opis();
+    abstract void opis();
+    abstract int compareAddresses(Wpis o);
+    abstract Address getAddress();
 }
 
 class Osoba extends Wpis {
     private final NrTelefoniczny numberInformation;
     private final String name;
     private final String surname;
-    private final String adress;
-
-    public Osoba(String name, String surname, String adress, NrTelefoniczny numberInformation) {
+    private final Address address;
+    public Osoba(String name, String surname, Address address,
+                 NrTelefoniczny numberInformation) {
         this.name = name;
         this.surname = surname;
-        this.adress = adress;
+        this.address = address;
         this.numberInformation = numberInformation;
     }
-
-    public String getName() {
-        return name;
+    public Address getAddress() {
+        return address;
     }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public String getAdress() {
-        return adress;
-    }
-
     public NrTelefoniczny getPhoneNumber() {
         return numberInformation;
     }
-
-    public NrTelefoniczny getCodeNumber() {
-        return numberInformation;
-    }
-
     @Override
     public void opis() {
-        System.out.println("(+" + numberInformation.getCodeNumber() + ") " + numberInformation.getPhoneNumber() + " " + name + " " + surname + " " + adress);
-
+        System.out.println("(+" + numberInformation.getCodeNumber() + ") " +
+                numberInformation.getPhoneNumber() + " | " + name + " " +
+                surname + " | " + address.getStreet() + " " +
+                address.getTown() + " ul " + address.getStreet() +" "+
+                address.getHomeNumber() +" "+ address.getPostCode() +" "+
+                address.getVoivodeship());
+    }
+    @Override
+    public int compareAddresses(Wpis o) {
+        return address.compareTo(o.getAddress());
     }
 }
-
 class Firma extends Wpis {
     String companyName;
-    String companyAdress;
+    Address address;
     NrTelefoniczny phoneNumber;
 
-    public Firma(String inputedCompanyName, String inputedCompanyAdress, NrTelefoniczny inputedCompanyPhoneNumber) {
+    public Firma(String inputedCompanyName, Address inputedCompanyAddress,
+                 NrTelefoniczny inputedCompanyPhoneNumber) {
         this.companyName = inputedCompanyName;
-        this.companyAdress = inputedCompanyAdress;
+        this.address = inputedCompanyAddress;
         this.phoneNumber = inputedCompanyPhoneNumber;
     }
-
-    public String getCompanyName() {
-        return companyName;
-    }
-
-    public String getCompanyAdress() {
-        return companyAdress;
-    }
-
     public NrTelefoniczny getPhoneNumber() {
         return phoneNumber;
     }
 
-
+    @Override
+    Address getAddress() {
+        return address;
+    }
     @Override
     public void opis() {
-        System.out.println("(+" + phoneNumber.getCodeNumber() + ") " + phoneNumber.getPhoneNumber() + " " + companyName + " " + companyAdress);
+        System.out.println("(+" + phoneNumber.getCodeNumber() + ") " +
+                phoneNumber.getPhoneNumber() + " | " + companyName + " " +
+                address.getStreet() + " " +
+                address.getTown() + " ul " + address.getStreet() +" "+
+                address.getHomeNumber() +" "+ address.getPostCode() +" "+
+                address.getVoivodeship());
+    }
+    @Override
+    public int compareAddresses(Wpis o) {
+        return address.compareTo(o.getAddress());
     }
 }
+class Address implements Comparable<Address> {
+    private final String street;
+    private final int homeNumber;
+    private final String town;
+    private final int postCode;
+    private final String voivodeship;
 
+    Address(String street, int homeNumber, String town,
+            int postCode, String voivodeship) {
+        this.street = street;
+        this.homeNumber = homeNumber;
+        this.town = town;
+        this.postCode = postCode;
+        this.voivodeship = voivodeship;
+    }
+    public String getStreet() {
+        return street;
+    }
+    public Integer getHomeNumber() {
+        return homeNumber;
+    }
+    public String getTown() {
+        return town;
+    }
+    public Integer getPostCode() {
+        return postCode;
+    }
+    public String getVoivodeship() {
+        return voivodeship;
+    }
+    @Override
+    public int compareTo(Address a) {
+        return street.compareTo(a.getStreet());
+    }
+}
 public class Main {
     public static void main(String[] args) {
+        try {
+            TreeMap<NrTelefoniczny, Wpis> phoneBook = new TreeMap<>();
+            TreeMap<NrTelefoniczny, Wpis> newPhoneBook = new TreeMap<>();
+            phoneBook = putData(phoneBook);
 
-        //TreeMap<NrTelefoniczny, Wpis> phoneBook = new TreeMap<>();
-        TreeMap<NrTelefoniczny, Wpis> phoneBook = new TreeMap<>();
+            System.out.println("                 --DISPLAY--");
+            show(phoneBook);
+            System.out.println("        --REMOVED IDENTICAL STREETS--");
+
+            newPhoneBook = removeIdenticalAddess(phoneBook);
+            show(newPhoneBook);
+
+        } catch (java.lang.ClassCastException e) {
+            System.out.println("There is error in Class casting. Check the types\n");
+            e.printStackTrace(System.out);
+        } catch (NullPointerException a) {
+            System.out.println("There is error with null returning\n");
+            a.printStackTrace(System.out);
+        }
+    }
+
+    static TreeMap<NrTelefoniczny, Wpis> removeIdenticalAddess(TreeMap<NrTelefoniczny, Wpis> phoneBook) {
+        boolean duplicated = false;
+        TreeMap<NrTelefoniczny, Wpis> newPhoneBook = new TreeMap<>();
+
+        for (Map.Entry<NrTelefoniczny, Wpis> nr1 : phoneBook.entrySet()) {
+            Wpis wpis1 = nr1.getValue();
+            NrTelefoniczny key1 = nr1.getKey();
+            duplicated = false;
+            for (Map.Entry<NrTelefoniczny, Wpis> nr2 : phoneBook.entrySet()) {
+                Wpis wpis2 = nr2.getValue();
+                NrTelefoniczny key2 = nr2.getKey();
+
+                if ((wpis1.compareAddresses(wpis2) == 0) && nr1 != nr2) { //|| wpis2.compareAddresses(wpis1) == 0
+
+                    duplicated = true;
+                    break;
+                }
+            }
+            if (!duplicated)
+                newPhoneBook.put(key1, wpis1);
+        }
+        return newPhoneBook;
+    }
+    static void show(TreeMap<NrTelefoniczny, Wpis> phoneBook) {
+
+        for (NrTelefoniczny nr : phoneBook.keySet()) {
+            Wpis wpis = phoneBook.get(nr);
+            wpis.opis();
+        }
+    }
+    static TreeMap<NrTelefoniczny, Wpis> putData(TreeMap<NrTelefoniczny, Wpis> phoneBook) {
 
         NrTelefoniczny number1 = new NrTelefoniczny("48", "123 456 789");
         NrTelefoniczny number2 = new NrTelefoniczny("48", "543 678 324");
@@ -124,17 +193,21 @@ public class Main {
         NrTelefoniczny number5 = new NrTelefoniczny("48", "913 721 372");
         NrTelefoniczny number6 = new NrTelefoniczny("48", "938 518 735");
 
+        Address address1 = new Address("Swietokrzyska", 234, "Pabianice", 95200, "Lodzkie");
+        Address address2 = new Address("Grota Roweckiego", 1, "Pabianice", 95200, "Lodzkie");
+        Address address3 = new Address("Pabianicka", 12, "Lodz", 95200, "Lodzkie");
+        Address address4 = new Address("Marii Sklodowskiej-Curie", 17, "Pabianice", 95200, "Lodzkie");
+        Address address5 = new Address("Marii Konopnickiej", 64, "Pabianice", 95200, "Lodzkie");
+        Address address6 = new Address("Mariana Jaracza", 6, "Lodz", 95200, "Lodzkie");
 
-        Osoba person1 = new Osoba("Jaroslaw", "Kaczynski", "Swietokrzyska 17", number1);
-        Osoba person2 = new Osoba("Zbigniew", "Stonoga", "Grota Roweckiego 3", number2);
-        Osoba person3 = new Osoba("Jaroslaw", "Kaczynski", "Wiejska 9", number3);
+        Osoba person1 = new Osoba("Jaroslaw", "Kaczynski", address1, number1);
+        Osoba person2 = new Osoba("Zbigniew", "Stonoga", address1, number2);
+        Osoba person3 = new Osoba("Zbigniew", "Ziobro", address3, number3);
 
-        //person1.opis();
-        Firma company1 = new Firma("c1", "s1", number4);
-        Firma company2 = new Firma("c2", "s2", number5);
-        Firma company3 = new Firma("c3", "s3", number6);
+        Firma company1 = new Firma("Accenture", address4, number4);
+        Firma company2 = new Firma("MacDonalds", address5, number5);
+        Firma company3 = new Firma("T-Mobile", address6, number6);
 
-        //company1.opis();
         phoneBook.put(person1.getPhoneNumber(), person1);
         phoneBook.put(person2.getPhoneNumber(), person2);
         phoneBook.put(person3.getPhoneNumber(), person3);
@@ -142,36 +215,6 @@ public class Main {
         phoneBook.put(company2.getPhoneNumber(), company2);
         phoneBook.put(company3.getPhoneNumber(), company3);
 
-
-        for (NrTelefoniczny nr : phoneBook.keySet()) {
-            Wpis wpis = phoneBook.get(nr);
-            wpis.opis();
-        }
-
-
+        return phoneBook;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
